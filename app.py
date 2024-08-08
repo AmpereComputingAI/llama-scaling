@@ -1,7 +1,9 @@
+import psutil
 import gradio as gr
 import requests
+import pandas as pd
 
-url = 'http://localhost:8081/completion'
+url = 'http://localhost:8080/completion'
 ex_text = [
     ["The Moon's orbit around Earth has"],
     ["The smooth Borealis basin in the Northern Hemisphere covers 40%"],
@@ -14,6 +16,17 @@ def completion(txt:str, count:int):
         r = requests.post(url, json=data)
         #print(r.status_code)
         yield r.json()['content']
+
+def cpu_percent():
+    #cpu_util = []
+    cpu_num = list(map(str, range(80)))
+    #print(cpu_num)
+    cpu_util = psutil.cpu_percent(interval=1, percpu=True)
+    df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:80]})
+    df = df.sort_values(by='CPU')
+    #print(df)
+    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage')
+
 
 txt_inp = []
 txt_out = []
@@ -28,6 +41,10 @@ stop_btn_evt = []
 clear = lambda: ""
 
 with gr.Blocks() as demo:
+    gr.HTML("<h1 style='text-align: center'>Llama Chat Linear Scaling</h1>")
+    plot = gr.BarPlot()
+    btn = gr.Button()
+    btn.click(cpu_percent, None, plot, every=1)
     with gr.Row(variant='panel'):
         for i in range(2):
             with gr.Column():
