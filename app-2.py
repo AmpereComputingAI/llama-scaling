@@ -1,4 +1,5 @@
 import copy
+from functools import partial
 import psutil
 import gradio as gr
 import requests
@@ -50,6 +51,8 @@ def completion1(txt, count):
         r = requests.post(url, json=data)
         #print(r.status_code)
         yield r.json()['content']
+
+d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 #for i in range(MAX_WINDOWS):
 #    completions.append(copy.deepcopy(completion))
@@ -110,10 +113,11 @@ with gr.Blocks() as demo:
                     stop_btn.append(gr.Button('Stop', variant='stop', scale=1))
                     #strt_btn_evt.append(strt_btn[i].click(completion, [txt_inp[i], numbers[i]], txt_out[i]))
                     #stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
-        strt_btn_evt.append(strt_btn[i].click(completion0, [txt_inp[0], numbers[1]], txt_out[0]))
-        strt_btn_evt.append(strt_btn[i].click(completion1, [txt_inp[1], numbers[1]], txt_out[1]))
+        #strt_btn_evt.append(strt_btn[i].click(completion0, [txt_inp[0], numbers[1]], txt_out[0]))
+        #strt_btn_evt.append(strt_btn[i].click(completion1, [txt_inp[1], numbers[1]], txt_out[1]))
         for i in range(MAX_WINDOWS):
             #strt_btn_evt.append(strt_btn[i].click(completion, [txt_inp[i], numbers[i]], txt_out[i]))
+            strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
             stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
 #    strt_btn1_evt = strt_btn1.click(completion, inp1, out1)
