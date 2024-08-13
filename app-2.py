@@ -17,17 +17,6 @@ ex_text = [
 
 completions = []
 
-def create_completions(txt, count):
-    def dynamic_func(*args):
-        data = {'prompt': txt, 'n_predict': 32}
-        for i in range(int(count)):
-            print(f'[{i}]: request post')
-            r = requests.post(url, json=data)
-            #print(r.status_code)
-            yield r.json()['content']
-
-    return dynamic_func
-
 def completion(txt, count):
     data = {'prompt': txt, 'n_predict': 32}
     for i in range(count):
@@ -36,41 +25,8 @@ def completion(txt, count):
         #print(r.status_code)
         yield r.json()['content']
 
-def completion0(txt, count):
-    data = {'prompt': txt, 'n_predict': 32}
-    for i in range(count):
-        print(f'[{i}]: request post')
-        r = requests.post(url, json=data)
-        #print(r.status_code)
-        yield r.json()['content']
-
-def completion1(txt, count):
-    data = {'prompt': txt, 'n_predict': 32}
-    for i in range(count):
-        print(f'[{i}]: request post')
-        r = requests.post(url, json=data)
-        #print(r.status_code)
-        yield r.json()['content']
-
+# Create multiple functions
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
-
-#for i in range(MAX_WINDOWS):
-#    completions.append(copy.deepcopy(completion))
-
-async def async_completion(txt:str, count:int):
-    data = {'prompt': txt, 'n_predict': 32}
-    for i in range(count):
-        print(f'[{count}]: [{i}]: request post')
-        async with httpx.AsyncClient(timeout=60) as client:
-            r = await client.post(url, json=data)
-            yield r.json()['content']
-
-
-def grequests_completion(txt:str, count:int):
-    data = {'prompt': txt, 'n_predict': 32}
-    r = grequests.post(url, json=data)
-    r = grequests.map(r)[0]
-    return r
 
 def cpu_percent():
     #cpu_util = []
@@ -111,21 +67,9 @@ with gr.Blocks() as demo:
                     strt_btn.append(gr.Button('Start', variant='primary', scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button('Stop', variant='stop', scale=1))
-                    #strt_btn_evt.append(strt_btn[i].click(completion, [txt_inp[i], numbers[i]], txt_out[i]))
-                    #stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
-        #strt_btn_evt.append(strt_btn[i].click(completion0, [txt_inp[0], numbers[1]], txt_out[0]))
-        #strt_btn_evt.append(strt_btn[i].click(completion1, [txt_inp[1], numbers[1]], txt_out[1]))
-        for i in range(MAX_WINDOWS):
-            #strt_btn_evt.append(strt_btn[i].click(completion, [txt_inp[i], numbers[i]], txt_out[i]))
-            strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
-            stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
-
-#    strt_btn1_evt = strt_btn1.click(completion, inp1, out1)
-#    stop_btn1_evt = stop_btn1.click(clear, None, out1, cancels=strt_btn1_evt)
-    #strt_btn1_evt = strt_btn1.click(completion, txt_inp[0], txt_out[0])
-    #stop_btn1_evt = stop_btn1.click(clear, None, txt_out[0], cancels=strt_btn1_evt)
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
+                    stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
-    #demo.queue(default_concurrency_limit=2)
-    demo.queue()
+    demo.queue(default_concurrency_limit=4)
     demo.launch(debug=True)
