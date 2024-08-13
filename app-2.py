@@ -54,8 +54,11 @@ clear = lambda: ""
 with gr.Blocks() as demo:
     gr.HTML("<h1 style='text-align: center'>Llama Chat Linear Scaling</h1>")
     plot = gr.BarPlot()
-    btn = gr.Button()
-    btn.click(cpu_percent, None, plot, every=1)
+    with gr.Row():
+        btn1 = gr.Button('Start', variant='primary')
+        btn2 = gr.Button('Stop', variant='stop')
+        btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
+        btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS):
             with gr.Column():
