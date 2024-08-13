@@ -8,14 +8,13 @@ import httpx
 import pandas as pd
 
 MAX_WINDOWS = 2
+MAX_REQUESTS = 3
 
 url = 'http://localhost:8080/completion'
 ex_text = [
     ["The Moon's orbit around Earth has"],
     ["The smooth Borealis basin in the Northern Hemisphere covers 40%"],
 ]
-
-completions = []
 
 def completion(txt, count):
     data = {'prompt': txt, 'n_predict': 32}
@@ -66,7 +65,7 @@ with gr.Blocks() as demo:
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4))
                 with gr.Row(variant='panel'):
-                    numbers.append(gr.Number(5, label='Loop', container=False))
+                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False))
                     strt_btn.append(gr.Button('Start', variant='primary', size='sm'))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button('Stop', variant='stop', size='sm'))
