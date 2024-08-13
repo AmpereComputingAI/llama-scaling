@@ -7,7 +7,7 @@ import grequests
 import httpx
 import pandas as pd
 
-MAX_WINDOWS = 2
+MAX_WINDOWS = 4
 MAX_REQUESTS = 3
 
 url = 'http://localhost:8080/completion'
@@ -60,7 +60,7 @@ with gr.Blocks() as demo:
         btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS):
-            with gr.Column():
+            with gr.Column(min_width=128):
                 txt_inp.append(gr.Textbox(label='Input Text'))
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4))
