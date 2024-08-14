@@ -79,13 +79,13 @@ with gr.Blocks() as demo:
         #for i in range(MAX_WINDOWS):
         for i in range(MAX_WINDOWS//2):
             with gr.Column(min_width=128, variant='panel'):
-                gr.Markdown(f'Client {i}')
+                gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
-                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=1))
+                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i], trigger_mode='once'))
@@ -95,13 +95,13 @@ with gr.Blocks() as demo:
         #for i in range(MAX_WINDOWS):
         for i in range(MAX_WINDOWS//2, MAX_WINDOWS):
             with gr.Column(min_width=128):
-                gr.Markdown(f'Client {i}')
+                gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
-                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=1))
+                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
