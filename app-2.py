@@ -9,11 +9,15 @@ import pandas as pd
 
 MAX_WINDOWS = 4
 MAX_REQUESTS = 3
+NUM_THREADS = 16
+MAX_CPUS = MAX_WINDOWS * NUM_THREADS
 
 url = 'http://localhost:8080/completion'
 ex_text = [
     ["The Moon's orbit around Earth has"],
-    ["The smooth Borealis basin in the Northern Hemisphere covers 40%"],
+    ["Explore the Wonders of Space Exploration"],
+    ["Mysterious island, hidden treasure inside"],
+    ["Wildflowers blooming in the meadow"],
 ]
 
 def completion(txt, count):
@@ -29,13 +33,13 @@ d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 def cpu_percent():
     #cpu_util = []
-    cpu_num = list(map(str, range(80)))
+    cpu_num = list(map(str, range(MAX_CPUS)))
     #print(cpu_num)
     cpu_util = psutil.cpu_percent(interval=1, percpu=True)
-    df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:80]})
+    df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
     df = df.sort_values(by='CPU')
     #print(df)
-    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage')
+    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', container=False)
 
 
 txt_inp = []
@@ -51,7 +55,17 @@ stop_btn_evt = []
 clear = lambda: ""
 
 with gr.Blocks() as demo:
-    gr.HTML("<h1 style='text-align: center'>Llama Chat Linear Scaling</h1>")
+    with gr.Row(variant='panel'):
+        #gr.set_static_paths(paths=["static/"])
+        with gr.Column(variant='panel', scale=4):
+            t1 = 'Llama Chat Linear Scaling'
+            subtitle = 'on Ampere CPUs'
+            gr.Markdown(f'<center><h1 style="font-size:3em">{t1}<br />{subtitle}</h1></center>')
+        with gr.Column(variant='panel', scale=1):
+            gr.Markdown('<img src="file/static/ampere_logo_primary_stacked_rgb.png" alt="images" border="0" style="float:right">')
+            #gr.Markdown('<img src="/file=/static/ampere_logo_primary_stacked_rgb.png">')
+            #gr.HTML('<img src="file/static/ampere_logo_primary_stacked_rgb.png" alt="images" border="0" style="float:right">')
+            #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
     plot = gr.BarPlot()
     with gr.Row():
         btn1 = gr.Button('Start', variant='secondary', size='sm')
@@ -61,17 +75,17 @@ with gr.Blocks() as demo:
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS):
             with gr.Column(min_width=128):
-                txt_inp.append(gr.Textbox(label='Input Text'))
+                txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
-                txt_out.append(gr.Textbox(label='Output Text', lines=4))
+                txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
-                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False))
-                    strt_btn.append(gr.Button('Start', variant='primary', size='sm'))
+                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, scale=1))
+                    strt_btn.append(gr.Button('Start', variant='primary', size='sm', scale=3))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
-                    stop_btn.append(gr.Button('Stop', variant='stop', size='sm'))
+                    stop_btn.append(gr.Button('Stop', variant='stop', size='sm', scale=1))
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
     demo.queue(default_concurrency_limit=4)
-    demo.launch(debug=True)
+    demo.launch(allowed_paths=["static/ampere_logo_primary_stacked_rgb.png"], debug=True)
