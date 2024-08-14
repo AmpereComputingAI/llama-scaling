@@ -8,7 +8,7 @@ import httpx
 import pandas as pd
 
 MAX_WINDOWS = 4
-MAX_REQUESTS = 3
+MAX_REQUESTS = 1
 NUM_THREADS = 16
 MAX_CPUS = MAX_WINDOWS * NUM_THREADS
 
@@ -54,6 +54,9 @@ stop_btn_evt = []
 
 clear = lambda: ""
 
+start = '\U000025B6'
+stop = '\U000023F9'
+
 with gr.Blocks() as demo:
     with gr.Row(variant='panel'):
         #gr.set_static_paths(paths=["static/"])
@@ -68,8 +71,8 @@ with gr.Blocks() as demo:
             #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
     plot = gr.BarPlot()
     with gr.Row():
-        btn1 = gr.Button('Start', variant='secondary', size='sm')
-        btn2 = gr.Button('Stop', variant='secondary', size='sm')
+        btn1 = gr.Button(start, variant='secondary', size='sm')
+        btn2 = gr.Button(stop, variant='secondary', size='sm')
         btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
         btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
@@ -79,11 +82,11 @@ with gr.Blocks() as demo:
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
-                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, scale=1))
-                    strt_btn.append(gr.Button('Start', variant='primary', size='sm', scale=3))
+                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
+                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=3))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
-                    stop_btn.append(gr.Button('Stop', variant='stop', size='sm', scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
+                    stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i], trigger_mode='once'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
