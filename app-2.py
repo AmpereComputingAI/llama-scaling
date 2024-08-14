@@ -7,7 +7,7 @@ import grequests
 import httpx
 import pandas as pd
 
-MAX_WINDOWS = 4
+MAX_WINDOWS = 8
 MAX_REQUESTS = 1
 NUM_THREADS = 16
 MAX_CPUS = MAX_WINDOWS * NUM_THREADS
@@ -76,19 +76,37 @@ with gr.Blocks() as demo:
         btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
         btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
-        for i in range(MAX_WINDOWS):
-            with gr.Column(min_width=128):
+        #for i in range(MAX_WINDOWS):
+        for i in range(MAX_WINDOWS//2):
+            with gr.Column(min_width=128, variant='panel'):
+                gr.Markdown(f'Client {i}')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(ex_text, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
-                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=3))
+                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=1))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i], trigger_mode='once'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
+    with gr.Row(variant='panel'):
+        #for i in range(MAX_WINDOWS):
+        for i in range(MAX_WINDOWS//2, MAX_WINDOWS):
+            with gr.Column(min_width=128):
+                gr.Markdown(f'Client {i}')
+                txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
+                examples.append(gr.Examples(ex_text, txt_inp[i]))
+                txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
+                with gr.Row(variant='panel'):
+                    numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
+                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=1))
+                    #loop_btn.append(gr.Button('Loop', variant='primary'))
+                    stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
+                    stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
+
 if __name__ == '__main__':
-    demo.queue(default_concurrency_limit=4)
+    demo.queue(default_concurrency_limit=MAX_WINDOWS)
     demo.launch(allowed_paths=["static/ampere_logo_primary_stacked_rgb.png"], debug=True)
