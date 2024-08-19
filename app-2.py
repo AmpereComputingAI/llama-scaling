@@ -10,7 +10,8 @@ import pandas as pd
 MAX_WINDOWS = 8
 MAX_REQUESTS = 1
 NUM_THREADS = 16
-MAX_CPUS = MAX_WINDOWS * NUM_THREADS
+#MAX_CPUS = MAX_WINDOWS * NUM_THREADS
+MAX_CPUS = 160
 
 url = 'http://localhost:8080/completion'
 ex_text = [
@@ -22,11 +23,23 @@ ex_text = [
 
 def completion(txt, count):
     data = {'prompt': txt, 'n_predict': 32}
-    for i in range(count):
-        print(f'[{i}]: request post')
-        r = requests.post(url, json=data)
-        #print(r.status_code)
-        yield r.json()['content']
+#    for i in range(count):
+#        print(f'[{i}]: request post')
+#        r = requests.post(url, json=data)
+#        #print(r.status_code)
+#        yield r.json()['content']
+    with requests.Session() as s:
+        for i in range(count):
+            print(f'[{i}]: request post')
+            try:
+                r = s.post(url, json=data)
+                r.raise_for_status()
+                #print(r.status_code)
+                yield r.json()['content']
+            except requests.exceptions.RequestException as e:
+                print("An error occurred:", e)
+
+
 
 # Create multiple functions
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
@@ -69,12 +82,14 @@ with gr.Blocks() as demo:
             #gr.Markdown('<img src="/file=/static/ampere_logo_primary_stacked_rgb.png">')
             #gr.HTML('<img src="file/static/ampere_logo_primary_stacked_rgb.png" alt="images" border="0" style="float:right">')
             #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
-    plot = gr.BarPlot()
     with gr.Row():
-        btn1 = gr.Button(start, variant='secondary', size='sm')
-        btn2 = gr.Button(stop, variant='secondary', size='sm')
-        btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
-        btn2.click(clear, None, None, cancels=btn1_evt)
+        with gr.Column(variant='panel', scale=25):
+            plot = gr.BarPlot()
+        with gr.Column(min_width=64, variant='panel', scale=1):
+            btn1 = gr.Button(start, variant='secondary', size='sm')
+            btn2 = gr.Button(stop, variant='secondary', size='sm')
+            btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
+            btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
         #for i in range(MAX_WINDOWS):
         for i in range(MAX_WINDOWS//2):
