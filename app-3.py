@@ -1,11 +1,11 @@
 import copy
 from functools import partial
+import concurrent
 import psutil
 import gradio as gr
 import requests
-import grequests
-import httpx
 import pandas as pd
+import threading
 
 MAX_WINDOWS = 8
 MAX_REQUESTS = 1
@@ -14,15 +14,16 @@ NUM_THREADS = 16
 MAX_CPUS = 160
 
 url = 'http://localhost:8080/completion'
-ex_text = [
+prompts = [
     ["The Moon's orbit around Earth has"],
     ["Explore the Wonders of Space Exploration"],
     ["Mysterious island, hidden treasure inside"],
     ["Wildflowers blooming in the meadow"],
 ]
 
-def completion(txt, count):
+def completion_one(txt):
     data = {'prompt': txt, 'n_predict': 32}
+    print(f'+++ Thread ID: {threading.current_thread().name}')
 #    for i in range(count):
 #        print(f'[{i}]: request post')
 #        r = requests.post(url, json=data)
@@ -37,6 +38,25 @@ def completion(txt, count):
     except requests.exceptions.RequestException as e:
         print("An error occurred:", e)
         return None
+
+def completion(txt, count):
+    # Create a ThreadPoolExecutor for parallel requests
+    if not txt:
+        txts = prompts
+    else:
+        txts = [ txt for i in range(len(prompts)) ]
+    print(f'+++ txts: {txts}')
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=count, thread_name_prefix='my-thread') as executor:
+        # Submit the requests and retrieve the responses
+        futures = [executor.submit(completion_one, prompt) for prompt in txts]
+        #responses = [future.result() for future in futures]
+        #[ print(f'+++ {r}') for r in responses ]
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            print(f'+++ {result}')
+            #yield responses
+            yield result
 
 
 # Create multiple functions
@@ -94,7 +114,7 @@ with gr.Blocks() as demo:
             with gr.Column(min_width=128, variant='panel'):
                 gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
-                examples.append(gr.Examples(ex_text, txt_inp[i]))
+                examples.append(gr.Examples(prompts, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
@@ -110,7 +130,7 @@ with gr.Blocks() as demo:
             with gr.Column(min_width=128):
                 gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
-                examples.append(gr.Examples(ex_text, txt_inp[i]))
+                examples.append(gr.Examples(prompts, txt_inp[i]))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
