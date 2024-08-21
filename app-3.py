@@ -41,10 +41,7 @@ def completion_one(txt):
 
 def completion(txt, count):
     # Create a ThreadPoolExecutor for parallel requests
-    if not txt:
-        txts = prompts
-    else:
-        txts = [ txt for i in range(len(prompts)) ]
+    txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
     print(f'+++ txts: {txts}')
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=count, thread_name_prefix='my-thread') as executor:
