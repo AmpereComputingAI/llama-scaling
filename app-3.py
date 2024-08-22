@@ -1,11 +1,9 @@
-import copy
 from functools import partial
-import concurrent
-import psutil
+#import concurrent
 import gradio as gr
 import requests
 import pandas as pd
-import threading
+import psutil, threading, time
 
 MAX_WINDOWS = 8
 MAX_REQUESTS = 1
@@ -15,10 +13,10 @@ MAX_CPUS = 160
 
 url = 'http://localhost:8080/completion'
 prompts = [
-    ["The Moon's orbit around Earth has"],
-    ["Explore the Wonders of Space Exploration"],
-    ["Mysterious island, hidden treasure inside"],
-    ["Wildflowers blooming in the meadow"],
+    "The Moon's orbit around Earth has",
+    "Explore the Wonders of Space Exploration",
+    "Mysterious island, hidden treasure inside",
+    "Wildflowers blooming in the meadow",
 ]
 
 def completion_one(txt):
@@ -39,10 +37,11 @@ def completion_one(txt):
         print("An error occurred:", e)
         return None
 
+"""
 def completion(txt, count):
     # Create a ThreadPoolExecutor for parallel requests
     txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
-    print(f'+++ txts: {txts}')
+    print(f'+++ type(txts): {type(txts)} txts: {txts}')
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=count, thread_name_prefix='my-thread') as executor:
         # Submit the requests and retrieve the responses
@@ -54,6 +53,37 @@ def completion(txt, count):
             print(f'+++ {result}')
             #yield responses
             yield result
+"""
+def completion(txt, count):
+    # Create a ThreadPoolExecutor for parallel requests
+    #txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
+    txts = prompts
+    print(f'+++ type(txts): {type(txts)} txts: {txts}')
+    data = {'prompt': txts, 'n_predict': 32}
+    try:
+        t0 = time.perf_counter()
+        r = requests.post(url, json=data)
+        r.raise_for_status()
+        #print(r.status_code)
+        #return r.json()['content']
+        print(f'+++ Time taken: {time.perf_counter() - t0}')
+        #r_dict = r.json().values()
+        #print(f'+++ {type(r_dict)}')
+        #r_dict = r.json()["results"][0]
+        #print(f'+++ {r_dict}')
+        #r_dict_list = list(list(r_dict)[0])
+        #for i in r_dict_list:
+        #    print(f'+++ {type(i)}')
+        #print(f'{r_dict_list[0].keys()}')
+        #print(f'{r_dict_list[0].values()}')
+
+        #print(f'+++ {list(r_dict.keys())}')
+        #print(f'+++ {list(r_dict.values())}')
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        print("An error occurred:", e)
+        return None
+
 
 
 # Create multiple functions
