@@ -55,6 +55,7 @@ def completion(txt, count):
             #yield responses
             yield result
 """
+import json
 def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
     #txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
@@ -83,7 +84,8 @@ def completion(txt, count, port):
 
             #print(f'+++ {list(r_dict.keys())}')
             #print(f'+++ {list(r_dict.values())}')
-            yield r.json()
+            #print(json.dumps(r.json(), indent=4))
+            yield [ item['content'] for item in r.json()['results'] ]
         except requests.exceptions.RequestException as e:
             print("An error occurred:", e)
             return None
