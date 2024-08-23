@@ -9,7 +9,7 @@ MAX_WINDOWS = 8
 MAX_REQUESTS = 3
 NUM_THREADS = 16
 #MAX_CPUS = MAX_WINDOWS * NUM_THREADS
-MAX_CPUS = 160
+MAX_CPUS = 64
 BASE_PORT = 8081
 
 #url = 'http://localhost:8081/completion'
@@ -94,14 +94,39 @@ def completion(txt, count, port):
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 def cpu_percent():
-    #cpu_util = []
-    cpu_num = list(map(str, range(MAX_CPUS)))
-    #print(cpu_num)
+    cpu_num = range(MAX_CPUS)
     cpu_util = psutil.cpu_percent(interval=1, percpu=True)
     df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
-    df = df.sort_values(by='CPU')
-    #print(df)
-    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', container=False)
+    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
+
+
+"""
+import numpy as np
+import plotly.express as px
+
+def cpu_percent():
+    cpu_data = psutil.cpu_percent(percpu=True)
+    #return px.bar(x=range(len(cpu_data)), y=cpu_data)
+    #data = np.array(cpu_data[:64]).reshape(-1,32)
+    #return px.imshow(data)
+    #fig = px.imshow(data,
+    #                labels=dict(x="CPUs", y="CPUs", color="Utilization"),
+    #                x = [ i for i in range(0, data.shape[1]) ],
+    #                y = [ i for i in range(0, data.shape[0]) ],
+    #                color_continuous_scale=["green", "yellow", "red"])
+    #fig['layout']['yaxis']['autorange'] = "reversed"
+    #fig.update_xaxes(showline=True, linecolor='black', linewidth=1, mirror=True)
+    #fig.update_yaxes(showline=True, linecolor='black', linewidth=1, mirror=True)
+    #return fig
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    cpu_num = list(map(str, range(MAX_CPUS)))
+    ax.bar(cpu_num, cpu_data[:64])
+
+    return plt
+"""
 
 
 txt_inp = []
@@ -119,7 +144,7 @@ clear = lambda: ""
 start = '\U000025B6'
 stop = '\U000023F9'
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Glass()) as demo:
     with gr.Row(variant='panel'):
         #gr.set_static_paths(paths=["static/"])
         with gr.Column(variant='panel', scale=4):
