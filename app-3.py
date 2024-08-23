@@ -6,17 +6,18 @@ import pandas as pd
 import psutil, threading, time
 
 MAX_WINDOWS = 8
-MAX_REQUESTS = 1
+MAX_REQUESTS = 3
 NUM_THREADS = 16
 #MAX_CPUS = MAX_WINDOWS * NUM_THREADS
 MAX_CPUS = 160
+BASE_PORT = 8081
 
-url = 'http://localhost:8080/completion'
+#url = 'http://localhost:8081/completion'
 prompts = [
     "The Moon's orbit around Earth has",
     "Explore the Wonders of Space Exploration",
     "Mysterious island, hidden treasure inside",
-    "Wildflowers blooming in the meadow",
+    "Wildflowers blooming in the meadow"
 ]
 
 def completion_one(txt):
@@ -54,35 +55,38 @@ def completion(txt, count):
             #yield responses
             yield result
 """
-def completion(txt, count):
+def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
     #txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
     txts = prompts
-    print(f'+++ type(txts): {type(txts)} txts: {txts}')
+    #print(f'+++ type(txts): {type(txts)} txts: {txts}')
+    print(f'+++ port: {port}')
+    url = f'http://localhost:{port}/completion'
     data = {'prompt': txts, 'n_predict': 32}
-    try:
-        t0 = time.perf_counter()
-        r = requests.post(url, json=data)
-        r.raise_for_status()
-        #print(r.status_code)
-        #return r.json()['content']
-        print(f'+++ Time taken: {time.perf_counter() - t0}')
-        #r_dict = r.json().values()
-        #print(f'+++ {type(r_dict)}')
-        #r_dict = r.json()["results"][0]
-        #print(f'+++ {r_dict}')
-        #r_dict_list = list(list(r_dict)[0])
-        #for i in r_dict_list:
-        #    print(f'+++ {type(i)}')
-        #print(f'{r_dict_list[0].keys()}')
-        #print(f'{r_dict_list[0].values()}')
+    for i in range(count):
+        try:
+            t0 = time.perf_counter()
+            r = requests.post(url, json=data)
+            r.raise_for_status()
+            #print(r.status_code)
+            #return r.json()['content']
+            print(f'+++ Time taken: [{port}] [{i}] {time.perf_counter() - t0}')
+            #r_dict = r.json().values()
+            #print(f'+++ {type(r_dict)}')
+            #r_dict = r.json()["results"][0]
+            #print(f'+++ {r_dict}')
+            #r_dict_list = list(list(r_dict)[0])
+            #for i in r_dict_list:
+            #    print(f'+++ {type(i)}')
+            #print(f'{r_dict_list[0].keys()}')
+            #print(f'{r_dict_list[0].values()}')
 
-        #print(f'+++ {list(r_dict.keys())}')
-        #print(f'+++ {list(r_dict.values())}')
-        return r.json()
-    except requests.exceptions.RequestException as e:
-        print("An error occurred:", e)
-        return None
+            #print(f'+++ {list(r_dict.keys())}')
+            #print(f'+++ {list(r_dict.values())}')
+            yield r.json()
+        except requests.exceptions.RequestException as e:
+            print("An error occurred:", e)
+            return None
 
 
 
@@ -145,10 +149,11 @@ with gr.Blocks() as demo:
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
+                    port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i], trigger_mode='once'))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], txt_out[i], trigger_mode='once'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
     with gr.Row(variant='panel'):
@@ -161,12 +166,13 @@ with gr.Blocks() as demo:
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
+                    port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i]], txt_out[i]))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], txt_out[i]))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
-    demo.queue(default_concurrency_limit=MAX_WINDOWS)
+    demo.queue(default_concurrency_limit=4)
     demo.launch(allowed_paths=["static/ampere_logo_primary_stacked_rgb.png"], debug=True)
