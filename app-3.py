@@ -95,21 +95,38 @@ def completion(txt, count, port):
 # Create multiple functions
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
+import concurrent.futures
+import requests
+
+#urls = [(url, start-cpu, numcpu), ...]
+urls = [('http://localhost:8000/cpu-percent', 0, 64),
+        ('http://localhost:8000/cpu-percent', 80, 64)]
+
 def cpu_percent():
     #cpu_num = range(MAX_CPUS)
     #cpu_util = psutil.cpu_percent(interval=1, percpu=True)
     #df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
     #return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
 
-    try:
-        r = requests.get('http://localhost:8000/cpu-percent')
-        r.raise_for_status()
-        cpu_util = r.json()['cpu-percent']
-        df = pd.DataFrame({'CPU': range(MAX_CPUS), 'Percent': cpu_util[:MAX_CPUS]})
-        return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
-    except requests.exceptions.RequestException as e:
-        print("An error occurred:", e)
-        return []
+    def fetch_url_and_plot(data):
+        # Simulate a URL fetch operation (replace with your actual implementation)
+        print(f'+++ {data}')
+        url, start, ncores = data
+        end = start + ncores
+        print(f'+++: start: {start} end: {end}')
+        try:
+            r = requests.get(url)
+            r.raise_for_status()
+            cpu_util = r.json()['cpu-percent']
+            df = pd.DataFrame({'CPU': range(start, end), 'Percent': cpu_util[start:end]})
+            return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[start, end-1], y_lim=[0, 100], container=False)
+        except requests.exceptions.RequestException as e:
+            print("An error occurred:", e)
+            return []
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        plots = list(executor.map(fetch_url_and_plot, urls))
+        return plots
 
 
 """
@@ -170,11 +187,12 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
     with gr.Row():
         with gr.Column(variant='panel', scale=25):
-            plot = gr.BarPlot()
+            plot1 = gr.BarPlot()
+            plot2 = gr.BarPlot()
         with gr.Column(min_width=64, variant='panel', scale=1):
             btn1 = gr.Button(start, variant='secondary', size='sm')
             btn2 = gr.Button(stop, variant='secondary', size='sm')
-            btn1_evt = btn1.click(cpu_percent, None, plot, every=1)
+            btn1_evt = btn1.click(cpu_percent, None, [plot1, plot2], every=1)
             btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
         #for i in range(MAX_WINDOWS):
