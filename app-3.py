@@ -96,10 +96,20 @@ def completion(txt, count, port):
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 def cpu_percent():
-    cpu_num = range(MAX_CPUS)
-    cpu_util = psutil.cpu_percent(interval=1, percpu=True)
-    df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
-    return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
+    #cpu_num = range(MAX_CPUS)
+    #cpu_util = psutil.cpu_percent(interval=1, percpu=True)
+    #df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
+    #return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
+
+    try:
+        r = requests.get('http://localhost:8000/cpu-percent')
+        r.raise_for_status()
+        cpu_util = r.json()['cpu-percent']
+        df = pd.DataFrame({'CPU': range(MAX_CPUS), 'Percent': cpu_util[:MAX_CPUS]})
+        return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
+    except requests.exceptions.RequestException as e:
+        print("An error occurred:", e)
+        return []
 
 
 """
