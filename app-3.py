@@ -110,10 +110,9 @@ def cpu_percent():
 
     def fetch_url_and_plot(data):
         # Simulate a URL fetch operation (replace with your actual implementation)
-        print(f'+++ {data}')
         url, start, ncores = data
         end = start + ncores
-        print(f'+++: start: {start} end: {end}')
+        #print(f'+++: start: {start} end: {end}')
         try:
             r = requests.get(url)
             r.raise_for_status()
@@ -200,7 +199,7 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             with gr.Column(min_width=128, variant='panel'):
                 gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
-                examples.append(gr.Examples(prompts, txt_inp[i]))
+                examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts'))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
@@ -217,7 +216,7 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             with gr.Column(min_width=128):
                 gr.Markdown(f'*Client {i}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
-                examples.append(gr.Examples(prompts, txt_inp[i]))
+                examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts'))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
