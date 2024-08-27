@@ -56,6 +56,8 @@ def completion(txt, count):
             yield result
 """
 import json
+import statistics
+
 def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
     #txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
@@ -85,7 +87,12 @@ def completion(txt, count, port):
             #print(f'+++ {list(r_dict.keys())}')
             #print(f'+++ {list(r_dict.values())}')
             #print(json.dumps(r.json(), indent=4))
-            yield [ item['content'] for item in r.json()['results'] ]
+            results_dict = r.json()['results']
+            content = [ item['content'] for item in results_dict ]
+            pred_n = sum( item['timings']['predicted_n'] for item in results_dict )
+            pred_ms = statistics.mean( item['timings']['predicted_ms'] for item in results_dict )
+            stats = f'sequences: {len(txts)}    tokens: {pred_n}    time: {pred_ms/1000:.1f}s'
+            yield [content, stats]
         except requests.exceptions.RequestException as e:
             print("An error occurred:", e)
             return None
@@ -159,6 +166,7 @@ def cpu_percent():
 
 txt_inp = []
 txt_out = []
+txt_stats = []
 examples = []
 strt_btn = []
 loop_btn = []
@@ -194,38 +202,39 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             btn1_evt = btn1.click(cpu_percent, None, [plot1, plot2], every=1)
             btn2.click(clear, None, None, cancels=btn1_evt)
     with gr.Row(variant='panel'):
-        #for i in range(MAX_WINDOWS):
         for i in range(MAX_WINDOWS//2):
             with gr.Column(min_width=128, variant='panel'):
-                gr.Markdown(f'*Client {i}*')
+                gr.Markdown(f'*User {i+1}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
-                examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts'))
+                examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts', examples_per_page=4))
+                gr.Markdown(f'*Output Text and Stats*')
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
+                txt_stats.append(gr.Textbox(label='Output Stats', lines=1, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
                     port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], txt_out[i], trigger_mode='once'))
-                    stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once'))
+                    stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
 
     with gr.Row(variant='panel'):
-        #for i in range(MAX_WINDOWS):
         for i in range(MAX_WINDOWS//2, MAX_WINDOWS):
             with gr.Column(min_width=128):
-                gr.Markdown(f'*Client {i}*')
+                gr.Markdown(f'*User {i+1}*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts'))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
+                txt_stats.append(gr.Textbox(label='Output Stats', lines=1, container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
                     port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], txt_out[i]))
-                    stop_btn_evt.append(stop_btn[i].click(clear, None, txt_out[i], cancels=strt_btn_evt[i]))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]]))
+                    stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
     demo.queue(default_concurrency_limit=4)
