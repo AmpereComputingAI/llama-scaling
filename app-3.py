@@ -91,8 +91,10 @@ def completion(txt, count, port):
             content = [ item['content'] for item in results_dict ]
             pred_n = sum( item['timings']['predicted_n'] for item in results_dict )
             pred_ms = statistics.mean( item['timings']['predicted_ms'] for item in results_dict )
-            stats = f'sequences: {len(txts)}    tokens: {pred_n}    time: {pred_ms/1000:.1f}s'
+            stats = f'sequences: {len(txts)}\ttokens: {pred_n}\ttime: {pred_ms/1000:.1f}s'
+            #stats_d = {'sequences': len(txts), 'tokens': pred_n, 'time': f'{pred_ms/1000:.1f}s'}
             yield [content, stats]
+            #yield [content, stats_d]
         except requests.exceptions.RequestException as e:
             print("An error occurred:", e)
             return None
@@ -210,13 +212,15 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
                 gr.Markdown(f'*Output Text and Stats*')
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 txt_stats.append(gr.Textbox(label='Output Stats', lines=1, container=False))
+                #txt_stats.append(gr.Markdown(label='Output Text', show_label=True))
+                #txt_stats.append(gr.JSON(container=False, min_width=100))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
                     port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once'))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
 
     with gr.Row(variant='panel'):
@@ -227,13 +231,15 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
                 examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts'))
                 txt_out.append(gr.Textbox(label='Output Text', lines=4, max_lines=4, container=False))
                 txt_stats.append(gr.Textbox(label='Output Stats', lines=1, container=False))
+                #txt_stats.append(gr.Markdown())
+                #txt_stats.append(gr.JSON(container=False))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
                     port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
                     #loop_btn.append(gr.Button('Loop', variant='primary'))
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]]))
+                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], show_progress='minimal'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
 
 if __name__ == '__main__':
