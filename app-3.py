@@ -190,8 +190,9 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             #gr.HTML('<img src="file/static/ampere_logo_primary_stacked_rgb.png" alt="images" border="0" style="float:right">')
             #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
     with gr.Row():
-        with gr.Column(variant='panel', scale=25):
+        with gr.Column(min_width=64, variant='panel', scale=25):
             plot1 = gr.BarPlot()
+        with gr.Column(min_width=64, variant='panel', scale=25):
             plot2 = gr.BarPlot()
         with gr.Column(min_width=64, variant='panel', scale=1):
             btn1 = gr.Button(start, variant='secondary', size='sm')
