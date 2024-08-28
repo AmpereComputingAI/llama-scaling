@@ -1,9 +1,9 @@
 from functools import partial
-#import concurrent
 import gradio as gr
-import requests
 import pandas as pd
 import psutil, threading, time
+import json, requests, statistics
+import concurrent.futures
 
 MAX_WINDOWS = 8
 MAX_REQUESTS = 3
@@ -55,8 +55,6 @@ def completion(txt, count):
             #yield responses
             yield result
 """
-import json
-import statistics
 
 def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
@@ -103,9 +101,6 @@ def completion(txt, count, port):
 
 # Create multiple functions
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
-
-import concurrent.futures
-import requests
 
 #urls = [(url, start-cpu, numcpu), ...]
 urls = [('http://localhost:8000/cpu-percent', 0, 64),
