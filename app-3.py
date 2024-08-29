@@ -103,8 +103,10 @@ def completion(txt, count, port):
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 #urls = [(url, start-cpu, numcpu), ...]
-urls = [('http://localhost:8000/cpu-percent', 0, 64),
-        ('http://localhost:8000/cpu-percent', 80, 64)]
+urls = [('http://localhost:8000/cpu-percent', 0, 32),
+        ('http://localhost:8000/cpu-percent', 32, 32),
+        ('http://localhost:8000/cpu-percent', 80, 32),
+        ('http://localhost:8000/cpu-percent', 112, 32)]
 
 def cpu_percent():
     #cpu_num = range(MAX_CPUS)
@@ -171,6 +173,7 @@ stop_btn = []
 numbers = []
 strt_btn_evt = []
 stop_btn_evt = []
+plots = []
 
 clear = lambda: ""
 
@@ -189,16 +192,28 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
             #gr.Markdown('<img src="/file=/static/ampere_logo_primary_stacked_rgb.png">')
             #gr.HTML('<img src="file/static/ampere_logo_primary_stacked_rgb.png" alt="images" border="0" style="float:right">')
             #gr.Image("/file=static/ampere_logo_primary_stacked_rgb.png")
-    with gr.Row():
-        with gr.Column(min_width=64, variant='panel', scale=25):
-            plot1 = gr.BarPlot()
-        with gr.Column(min_width=64, variant='panel', scale=25):
-            plot2 = gr.BarPlot()
-        with gr.Column(min_width=64, variant='panel', scale=1):
+    with gr.Group():
+        with gr.Row(variant='panel'):
+            """
+            with gr.Column(min_width=64, variant='panel', scale=25):
+                plot1 = gr.BarPlot()
+            with gr.Column(min_width=64, variant='panel', scale=25):
+                plot2 = gr.BarPlot()
+            with gr.Column(min_width=64, variant='panel', scale=1):
+                btn1 = gr.Button(start, variant='secondary', size='sm')
+                btn2 = gr.Button(stop, variant='secondary', size='sm')
+                btn1_evt = btn1.click(cpu_percent, None, [plot1, plot2], every=1)
+                btn2.click(clear, None, None, cancels=btn1_evt)
+            """
+            for i in range(MAX_WINDOWS//2):
+                with gr.Column(min_width=128, variant='panel'):
+                    plots.append(gr.BarPlot())
+        with gr.Row(variant='panel'):
             btn1 = gr.Button(start, variant='secondary', size='sm')
             btn2 = gr.Button(stop, variant='secondary', size='sm')
-            btn1_evt = btn1.click(cpu_percent, None, [plot1, plot2], every=1)
+            btn1_evt = btn1.click(cpu_percent, None, plots, every=1)
             btn2.click(clear, None, None, cancels=btn1_evt)
+
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS//2):
             with gr.Column(min_width=128, variant='panel'):
@@ -219,6 +234,7 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
 
+    """
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS//2, MAX_WINDOWS):
             with gr.Column(min_width=128):
@@ -237,6 +253,7 @@ with gr.Blocks(theme=gr.themes.Glass()) as demo:
                     stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
                     strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], show_progress='minimal'))
                     stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
+    """
 
 if __name__ == '__main__':
     demo.queue(default_concurrency_limit=4)
