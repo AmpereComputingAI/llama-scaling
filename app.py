@@ -58,9 +58,9 @@ def completion(txt, count):
 
 def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
-    #txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
-    txts = prompts
-    #print(f'+++ type(txts): {type(txts)} txts: {txts}')
+    txts = prompts if not txt else [txt]*len(prompts)
+    #txts = prompts
+    print(f'+++ type(txts): {type(txts)} txts: {txts}')
     print(f'+++ port: {port}')
     url = f'http://localhost:{port}/completion'
     data = {'prompt': txts, 'n_predict': 32}
@@ -89,7 +89,7 @@ def completion(txt, count, port):
             content = [ item['content'] for item in results_dict ]
             pred_n = sum( item['timings']['predicted_n'] for item in results_dict )
             pred_ms = statistics.mean( item['timings']['predicted_ms'] for item in results_dict )
-            stats = f'sequences: {len(txts)}\ttokens: {pred_n}\ttime: {pred_ms/1000:.1f}s'
+            stats = f'batch-size: {len(txts)}\ttokens: {pred_n}\ttime: {pred_ms/1000:.1f}s'
             #stats_d = {'sequences': len(txts), 'tokens': pred_n, 'time': f'{pred_ms/1000:.1f}s'}
             yield [content, stats]
             #yield [content, stats_d]
