@@ -180,11 +180,11 @@ clear = lambda: ""
 start = '\U000025B6'
 stop = '\U000023F9'
 
-with gr.Blocks(theme=gr.themes.Glass()) as demo:
+with gr.Blocks(theme=gr.themes.Base()) as demo:
     with gr.Row(variant='panel'):
         #gr.set_static_paths(paths=["static/"])
         with gr.Column(variant='panel', scale=4):
-            t1 = 'Llama Chat Linear Scaling'
+            t1 = 'Llama-3-8B Scale Out'
             subtitle = 'on Ampere CPUs'
             gr.Markdown(f'<center><h1 style="font-size:3em">{t1}<br />{subtitle}</h1></center>')
         with gr.Column(variant='panel', scale=1):
