@@ -58,12 +58,14 @@ def completion(txt, count):
 
 def completion(txt, count, port):
     # Create a ThreadPoolExecutor for parallel requests
+    #print(f'+++ type(txt): {type(txt)} txt: {txt}')
     txts = prompts if not txt else [txt]*len(prompts)
     #txts = prompts
     print(f'+++ type(txts): {type(txts)} txts: {txts}')
     print(f'+++ port: {port}')
     url = f'http://localhost:{port}/completion'
     data = {'prompt': txts, 'n_predict': 32}
+    #gr.Info(f'Running inference: batch-size: 4', duration=3)
     for i in range(count):
         try:
             t0 = time.perf_counter()
@@ -217,7 +219,8 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
     with gr.Row(variant='panel'):
         for i in range(MAX_WINDOWS//2):
             with gr.Column(min_width=128, variant='panel'):
-                gr.Markdown(f'*User {i+1}*')
+                gr.Markdown(f'User {i+1}')
+                #gr.Markdown(f'*Status: Ready to run*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts', examples_per_page=4))
                 gr.Markdown(f'*Output Text and Stats*')
@@ -228,11 +231,10 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
                     port = gr.Number(BASE_PORT + i, visible=False)
-                    strt_btn.append(gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2))
-                    #loop_btn.append(gr.Button('Loop', variant='primary'))
-                    stop_btn.append(gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1))
-                    strt_btn_evt.append(strt_btn[i].click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal'))
-                    stop_btn_evt.append(stop_btn[i].click(clear, None, None, cancels=strt_btn_evt[i]))
+                    strt_btn = gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2)
+                    stop_btn = gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1)
+                    strt_btn_evt = strt_btn.click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal')
+                    stop_btn_evt = stop_btn.click(clear, None, None, cancels=strt_btn_evt)
 
     """
     with gr.Row(variant='panel'):
