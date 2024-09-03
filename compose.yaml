@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: ampere-ai-llama-scaling:app-0.1
+    container_name: llama-scaling-app
+    network_mode: host
+    tty: true
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: ampere-ai-llama-scaling:api-0.1
+    container_name: llama-scaling-api
+    network_mode: host
+    tty: true
+    restart: unless-stopped
