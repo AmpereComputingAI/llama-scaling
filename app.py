@@ -182,6 +182,12 @@ clear = lambda: ""
 start = '\U000025B6'
 stop = '\U000023F9'
 
+def update_start():
+    return f'*Status: Running inference, batch_size:4*'
+
+def update_stop():
+    return f'*Status: Completed inference*'
+
 with gr.Blocks(theme=gr.themes.Base()) as demo:
     with gr.Row(variant='panel'):
         #gr.set_static_paths(paths=["static/"])
@@ -220,7 +226,7 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
         for i in range(MAX_WINDOWS//2):
             with gr.Column(min_width=128, variant='panel'):
                 gr.Markdown(f'User {i+1}')
-                #gr.Markdown(f'*Status: Ready to run*')
+                status = gr.Markdown(f'*Status: Ready to run*')
                 txt_inp.append(gr.Textbox(label='Input Text', container=False, placeholder='Prompt'))
                 examples.append(gr.Examples(prompts, txt_inp[i], label='Prompts', examples_per_page=4))
                 gr.Markdown(f'*Output Text and Stats*')
@@ -233,7 +239,9 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
                     port = gr.Number(BASE_PORT + i, visible=False)
                     strt_btn = gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2)
                     stop_btn = gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1)
-                    strt_btn_evt = strt_btn.click(d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal')
+                    strt_btn_evt = strt_btn.click(update_start, None, status).then(
+                        d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal').then(
+                        update_stop, None, status)
                     stop_btn_evt = stop_btn.click(clear, None, None, cancels=strt_btn_evt)
 
     """
