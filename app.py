@@ -20,13 +20,20 @@ prompts = [
     "Wildflowers blooming in the meadow"
 ]
 
-def completion(txt, count, port):
+app_urls = ['http://localhost:8081/completion',
+        'http://localhost:8082/completion',
+        'http://localhost:8083/completion',
+        'http://localhost:8084/completion']
+
+def completion(txt, count, index):
     #print(f'+++ type(txt): {type(txt)} txt: {txt}')
     txts = prompts if not txt else [txt]*len(prompts)
     #txts = prompts
     print(f'+++ type(txts): {type(txts)} txts: {txts}')
-    print(f'+++ port: {port}')
-    url = f'http://localhost:{port}/completion'
+    #print(f'+++ port: {port}')
+    #url = f'http://localhost:{port}/completion'
+    url = app_urls[index]
+    print(f'+++ {url = }')
     data = {'prompt': txts, 'n_predict': 32}
     #gr.Info(f'Running inference: batch-size: 4', duration=3)
     for i in range(count):
@@ -36,7 +43,7 @@ def completion(txt, count, port):
             r.raise_for_status()
             #print(r.status_code)
             #print(json.dumps(r.json(), indent=4))
-            print(f'+++ Time taken: [{port}] [{i}] {time.perf_counter() - t0}')
+            print(f'+++ Time taken: [{url}] [{i}] {time.perf_counter() - t0}')
             results_dict = r.json()['results']
             content = [ item['content'] for item in results_dict ]
             pred_n = sum( item['timings']['predicted_n'] for item in results_dict )
@@ -62,7 +69,7 @@ urls = [('http://localhost:8000/cpu-percent', 0, 32),
 api_urls = ()
 with open('api-urls.txt', 'r') as file:
     api_urls = [tuple(line.strip().split(',')) for line in file]
-    print(f'{tuples_list = }')
+    print(f'{api_urls = }')
 
 def cpu_percent():
     def fetch_url_and_plot(data):
@@ -157,11 +164,12 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
                 #txt_stats.append(gr.JSON(container=False, min_width=100))
                 with gr.Row(variant='panel'):
                     numbers.append(gr.Number(MAX_REQUESTS, label='Loop', container=False, min_width=10, minimum=1, scale=1))
-                    port = gr.Number(BASE_PORT + i, visible=False)
+                    #port = gr.Number(BASE_PORT + i, visible=False)
+                    index = gr.Number(i, visible=False)
                     strt_btn = gr.Button(start, variant='secondary', size='sm', min_width=10, scale=2)
                     stop_btn = gr.Button(stop, variant='secondary', size='sm', min_width=10, scale=1)
                     strt_btn_evt = strt_btn.click(update_start, None, status).then(
-                        d[f'completion{i}'], [txt_inp[i], numbers[i], port], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal').then(
+                        d[f'completion{i}'], [txt_inp[i], numbers[i], index], [txt_out[i], txt_stats[i]], trigger_mode='once', show_progress='minimal').then(
                         update_stop, None, status)
                     stop_btn_evt = stop_btn.click(clear, None, None, cancels=strt_btn_evt)
 
