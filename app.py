@@ -53,14 +53,22 @@ def completion(txt, count, port):
 d = { f'completion{i}': partial(completion) for i in range(MAX_WINDOWS) }
 
 #urls = [(url, start-cpu, numcpu), ...]
+"""
 urls = [('http://localhost:8000/cpu-percent', 0, 32),
         ('http://localhost:8000/cpu-percent', 32, 32),
         ('http://localhost:8000/cpu-percent', 80, 32),
         ('http://localhost:8000/cpu-percent', 112, 32)]
+"""
+api_urls = ()
+with open('api-urls.txt', 'r') as file:
+    api_urls = [tuple(line.strip().split(',')) for line in file]
+    print(f'{tuples_list = }')
 
 def cpu_percent():
     def fetch_url_and_plot(data):
         url, start, ncores = data
+        start = int(start)
+        ncores = int(ncores)
         end = start + ncores
         #print(f'+++: start: {start} end: {end}')
         try:
@@ -74,7 +82,7 @@ def cpu_percent():
             return []
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        plots = list(executor.map(fetch_url_and_plot, urls))
+        plots = list(executor.map(fetch_url_and_plot, api_urls))
         return plots
 
 
