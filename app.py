@@ -20,10 +20,16 @@ prompts = [
     "Wildflowers blooming in the meadow"
 ]
 
+"""
 app_urls = ['http://localhost:8081/completion',
         'http://localhost:8082/completion',
         'http://localhost:8083/completion',
         'http://localhost:8084/completion']
+"""
+app_urls = []
+with open('app-urls.txt', 'r') as file:
+    app_urls = [line.strip() for line in file]
+    print(f'{app_urls = }')
 
 def completion(txt, count, index):
     #print(f'+++ type(txt): {type(txt)} txt: {txt}')
