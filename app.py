@@ -20,44 +20,7 @@ prompts = [
     "Wildflowers blooming in the meadow"
 ]
 
-def completion_one(txt):
-    data = {'prompt': txt, 'n_predict': 32}
-    print(f'+++ Thread ID: {threading.current_thread().name}')
-#    for i in range(count):
-#        print(f'[{i}]: request post')
-#        r = requests.post(url, json=data)
-#        #print(r.status_code)
-#        yield r.json()['content']
-    #print(f'[{i}]: request post')
-    try:
-        r = requests.post(url, json=data)
-        r.raise_for_status()
-        #print(r.status_code)
-        return r.json()['content']
-    except requests.exceptions.RequestException as e:
-        print("An error occurred:", e)
-        return None
-
-"""
-def completion(txt, count):
-    # Create a ThreadPoolExecutor for parallel requests
-    txts = prompts if not txt else [ txt for i in range(len(prompts)) ]
-    print(f'+++ type(txts): {type(txts)} txts: {txts}')
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=count, thread_name_prefix='my-thread') as executor:
-        # Submit the requests and retrieve the responses
-        futures = [executor.submit(completion_one, prompt) for prompt in txts]
-        #responses = [future.result() for future in futures]
-        #[ print(f'+++ {r}') for r in responses ]
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            print(f'+++ {result}')
-            #yield responses
-            yield result
-"""
-
 def completion(txt, count, port):
-    # Create a ThreadPoolExecutor for parallel requests
     #print(f'+++ type(txt): {type(txt)} txt: {txt}')
     txts = prompts if not txt else [txt]*len(prompts)
     #txts = prompts
@@ -72,29 +35,14 @@ def completion(txt, count, port):
             r = requests.post(url, json=data)
             r.raise_for_status()
             #print(r.status_code)
-            #return r.json()['content']
-            print(f'+++ Time taken: [{port}] [{i}] {time.perf_counter() - t0}')
-            #r_dict = r.json().values()
-            #print(f'+++ {type(r_dict)}')
-            #r_dict = r.json()["results"][0]
-            #print(f'+++ {r_dict}')
-            #r_dict_list = list(list(r_dict)[0])
-            #for i in r_dict_list:
-            #    print(f'+++ {type(i)}')
-            #print(f'{r_dict_list[0].keys()}')
-            #print(f'{r_dict_list[0].values()}')
-
-            #print(f'+++ {list(r_dict.keys())}')
-            #print(f'+++ {list(r_dict.values())}')
             #print(json.dumps(r.json(), indent=4))
+            print(f'+++ Time taken: [{port}] [{i}] {time.perf_counter() - t0}')
             results_dict = r.json()['results']
             content = [ item['content'] for item in results_dict ]
             pred_n = sum( item['timings']['predicted_n'] for item in results_dict )
             pred_ms = statistics.mean( item['timings']['predicted_ms'] for item in results_dict )
             stats = f'batch-size: {len(txts)}\ttokens: {pred_n}\ttime: {pred_ms/1000:.1f}s'
-            #stats_d = {'sequences': len(txts), 'tokens': pred_n, 'time': f'{pred_ms/1000:.1f}s'}
             yield [content, stats]
-            #yield [content, stats_d]
         except requests.exceptions.RequestException as e:
             print("An error occurred:", e)
             return None
@@ -111,13 +59,7 @@ urls = [('http://localhost:8000/cpu-percent', 0, 32),
         ('http://localhost:8000/cpu-percent', 112, 32)]
 
 def cpu_percent():
-    #cpu_num = range(MAX_CPUS)
-    #cpu_util = psutil.cpu_percent(interval=1, percpu=True)
-    #df = pd.DataFrame({'CPU': cpu_num, 'Percent': cpu_util[:MAX_CPUS]})
-    #return gr.BarPlot(df, x='CPU', y='Percent', title='CPU Usage', x_lim=[0, MAX_CPUS-1], y_lim=[0, 100], container=False)
-
     def fetch_url_and_plot(data):
-        # Simulate a URL fetch operation (replace with your actual implementation)
         url, start, ncores = data
         end = start + ncores
         #print(f'+++: start: {start} end: {end}')
@@ -134,35 +76,6 @@ def cpu_percent():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         plots = list(executor.map(fetch_url_and_plot, urls))
         return plots
-
-
-"""
-import numpy as np
-import plotly.express as px
-
-def cpu_percent():
-    cpu_data = psutil.cpu_percent(percpu=True)
-    #return px.bar(x=range(len(cpu_data)), y=cpu_data)
-    #data = np.array(cpu_data[:64]).reshape(-1,32)
-    #return px.imshow(data)
-    #fig = px.imshow(data,
-    #                labels=dict(x="CPUs", y="CPUs", color="Utilization"),
-    #                x = [ i for i in range(0, data.shape[1]) ],
-    #                y = [ i for i in range(0, data.shape[0]) ],
-    #                color_continuous_scale=["green", "yellow", "red"])
-    #fig['layout']['yaxis']['autorange'] = "reversed"
-    #fig.update_xaxes(showline=True, linecolor='black', linewidth=1, mirror=True)
-    #fig.update_yaxes(showline=True, linecolor='black', linewidth=1, mirror=True)
-    #return fig
-
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-    cpu_num = list(map(str, range(MAX_CPUS)))
-    ax.bar(cpu_num, cpu_data[:64])
-
-    return plt
-"""
 
 
 txt_inp = []
