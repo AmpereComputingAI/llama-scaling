@@ -1,4 +1,4 @@
-http://localhost:8005/cpu-percent,0,32
-http://localhost:8005/cpu-percent,32,32
-http://localhost:8005/cpu-percent,80,32
-http://localhost:8005/cpu-percent,112,32
+http://localhost:8000/cpu-percent,0,32
+http://localhost:8000/cpu-percent,32,32
+http://localhost:8000/cpu-percent,80,32
+http://localhost:8000/cpu-percent,112,32
