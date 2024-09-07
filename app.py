@@ -202,4 +202,4 @@ with gr.Blocks(theme=gr.themes.Base()) as demo:
 
 if __name__ == '__main__':
     demo.queue(default_concurrency_limit=4)
-    demo.launch(allowed_paths=["static/ampere_logo_primary_stacked_rgb.png"], debug=True)
+    demo.launch(server_name='0.0.0.0', allowed_paths=["static/ampere_logo_primary_stacked_rgb.png"], debug=True)
