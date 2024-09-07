@@ -3,7 +3,7 @@ FROM python:3.10-slim
 
 WORKDIR /workspace
 
-COPY requirements-app.txt .
+COPY api-urls.txt app-urls.txt requirements-app.txt .
 
 RUN pip install -r requirements-app.txt
 

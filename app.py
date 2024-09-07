@@ -57,8 +57,9 @@ def completion(txt, count, index):
             stats = f'batch-size: {len(txts)}\ttokens: {pred_n}\ttime: {pred_ms/1000:.1f}s'
             yield [content, stats]
         except requests.exceptions.RequestException as e:
-            print("An error occurred:", e)
-            return None
+            print(f'An error occurred: {e}', flush=True)
+            #return None
+            raise SystemExit(e)
 
 
 

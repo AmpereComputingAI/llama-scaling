@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.app
-    image: ghcr.io/amperecomputingai/llama-scaling:app-0.1
+    image: ghcr.io/amperecomputingai/llama-scaling:app-0.2
     container_name: llama-scaling-app
     network_mode: host
     tty: true
